@@ -1,2 +1,4 @@
 ep2.exe
 run.bat
+.gitignore
+pacientes.csv
