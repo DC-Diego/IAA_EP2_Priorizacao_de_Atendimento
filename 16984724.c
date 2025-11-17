@@ -21,6 +21,40 @@ int qtdLinhas(char * nomeArq);
 
 int abrirArquivo(char * nomeArq, ficha_Paciente * fichas, double * numeros);
 
+double escalonar(ficha_Paciente * ficha);
+
+
+void swap(int *a, int *b) {
+    int temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
+int partition(double nums[], int ids[], int inicio, int fim) {
+    double pivot = nums[ids[fim]];  // pivô escolhido como o último elemento
+    int i = inicio - 1;        // índice do menor elemento
+
+    for (int j = inicio; j < fim; j++) {
+        if (nums[ids[j]] <= pivot) { 
+            i++;
+            swap(&ids[i], &ids[j]);
+        }
+    }
+    swap(&ids[i + 1], &ids[fim]);
+    return i + 1; 
+}
+
+void quickSort(double nums[], int ids[], int inicio, int fim) {
+    if (inicio < fim) {
+        int pi = partition(nums, ids, inicio, fim);
+
+        quickSort(nums, ids, inicio, pi - 1);
+        quickSort(nums, ids, pi + 1, fim);
+    }
+}
+
+
+
 
 int main(int argc, char *argv[]){
   // printf("Hello, world! %d\n", argc);
@@ -28,16 +62,22 @@ int main(int argc, char *argv[]){
   if(linhas == -1) return -1;
   ficha_Paciente * fichas = (ficha_Paciente*) malloc(sizeof(ficha_Paciente)*linhas);
   double * numeros = (double*) malloc(sizeof(double)*linhas);
+  int * ids = (int*) malloc(sizeof(int)*linhas);
+  for (int i = 0; i < linhas; i++) ids[i] = i;
+
   abrirArquivo(argv[1], fichas, numeros);
 
-  for (int i = 0; i < linhas; i++)
-  {
-    printf("NUM: %lf\n", numeros[i]);
-  }
-  
+ 
   //ordenar os ids correspondentes.
+  quickSort(numeros, ids, 0, linhas-1);
+
 
   // printar lista ordenada substituindo os numeros/ids pela lista real.
+  for (int i = linhas-1; i >=0; i--)
+  {
+    printf("%s,%s,%d\n", cores[fichas[ids[i]].cor-1], preferencias[fichas[ids[i]].preferencia], fichas[ids[i]].tempo);
+  }
+
 
   // montar arquivo.
 
@@ -45,6 +85,35 @@ int main(int argc, char *argv[]){
 
   return 0;
 }
+
+double escalonar(ficha_Paciente * ficha){
+
+  switch (ficha->cor)
+  {
+    case 1:
+      ficha->cor = (ficha->tempo > 240)?ficha->cor+1:ficha->cor;
+      break;
+    case 2:
+      ficha->cor = (ficha->tempo > 120)?ficha->cor+1:ficha->cor;
+      break;
+    case 3:
+      ficha->cor = (ficha->tempo > 60)?ficha->cor+1:ficha->cor;
+      break;
+    case 4:
+      ficha->cor = (ficha->tempo > 10)?ficha->cor+1:ficha->cor;
+      break;
+    default:
+      break;
+  }
+
+
+
+  return (double)(ficha->cor * 10 +
+    ((ficha->cor >= 4 || !ficha->preferencia  ) ? 0 : 1)) +
+    ((double)ficha->tempo) / POTENCIA;
+
+}
+
 
 int abrirArquivo(char * nomeArq, ficha_Paciente * fichas, double * numeros){
 
@@ -68,9 +137,10 @@ int abrirArquivo(char * nomeArq, ficha_Paciente * fichas, double * numeros){
           case 2:
             fichas[linhaAtual].tempo = atoi(substring);
 
-            numeros[linhaAtual] = (double)(fichas[linhaAtual].cor * 10 +
-    ((fichas[linhaAtual].cor >= 4 || !fichas[linhaAtual].preferencia  ) ? 0 : 1)) +
-    ((double)fichas[linhaAtual].tempo) / POTENCIA;
+            // numeros[linhaAtual] = (double)(fichas[linhaAtual].cor * 10 +    ((fichas[linhaAtual].cor >= 4 || !fichas[linhaAtual].preferencia  ) ? 0 : 1)) +  ((double)fichas[linhaAtual].tempo) / POTENCIA;
+            printf("Antes %d", fichas[linhaAtual].cor);
+            numeros[linhaAtual] = escalonar(&fichas[linhaAtual]);
+            printf("DEPOIS %d\n", fichas[linhaAtual].cor);
             linhaAtual++;
             break;
         }        
@@ -88,7 +158,12 @@ int abrirArquivo(char * nomeArq, ficha_Paciente * fichas, double * numeros){
 
   }
   fichas[linhaAtual].tempo = atoi(substring);
-  numeros[linhaAtual] = (double)(fichas[linhaAtual].cor * 10 +((fichas[linhaAtual].cor >= 4 || !fichas[linhaAtual].preferencia  ) ? 0 : 1)) + ((double)fichas[linhaAtual].tempo) / POTENCIA;
+
+  printf("Antes %d", fichas[linhaAtual].cor);
+            numeros[linhaAtual] = escalonar(&fichas[linhaAtual]);
+            printf("Depois  %d\n", fichas[linhaAtual].cor);
+
+  // numeros[linhaAtual] = (double)(fichas[linhaAtual].cor * 10 +((fichas[linhaAtual].cor >= 4 || !fichas[linhaAtual].preferencia  ) ? 0 : 1)) + ((double)fichas[linhaAtual].tempo) / POTENCIA;
 
 
   fclose(arquivo);
